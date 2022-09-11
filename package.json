@@ -1,0 +1,25 @@
+{
+  "name": "cdnproj",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "doppler run --command \"nodemon app.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@sanket2904/package": "^1.1.22",
+    "@tensorflow-models/coco-ssd": "^2.2.2",
+    "@tensorflow/tfjs-backend-cpu": "^3.20.0",
+    "@tensorflow/tfjs-backend-webgl": "^3.20.0",
+    "argon2": "^0.29.1",
+    "aws-sdk": "^2.1213.0",
+    "backblaze-b2": "^1.7.0",
+    "generate-api-key": "^1.0.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^4.9.1",
+    "nodemon": "^2.0.19"
+  }
+}
