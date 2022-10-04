@@ -1,9 +1,11 @@
 let {generateApiKey} = require("generate-api-key")
 const argon2 = require("argon2")
 const jsonwebtoken = require("jsonwebtoken")
+require("../auth")
 module.exports = (app,db,parse) => {
     app.post("/api/create_account", async (req,res) => {
         try {
+            console.log(req.body)
             let data = req.body 
             data.created = new Date()
             data.updated = new Date()
@@ -24,7 +26,7 @@ module.exports = (app,db,parse) => {
             if(error.code == 11000){
                 res.status(409).send({message:"Account already exists"})
                 return
-            }
+            }   
             console.log(error)
             res.status(500).send(error)
         }
@@ -33,6 +35,7 @@ module.exports = (app,db,parse) => {
 
     app.post("/api/login",async (req,res) => {
         try {
+            console.log(req.body)
             let account;
             if (req.body.userName) {
                 account = await db.accounts.findOne({ userName: req.body.userName })
@@ -42,10 +45,13 @@ module.exports = (app,db,parse) => {
                 }
             }
             else if (req.body.email) {
-             account = await db.accounts.findOne({ email: req.body.email })
+            account = await db.accounts.findOne({ email: req.body.email })
+             
                 if(!account){
                     res.status(404).send({message:"Account not found"})
+                    return
                 }
+                
             }
 
 
@@ -61,12 +67,11 @@ module.exports = (app,db,parse) => {
                 date.setDate(date.getDate() + 7)
                 let session = new db.sessions({accountId: account._id, createdAt: new Date(), expireAt: date})
                 let token = jsonwebtoken.sign({account_id:account._id,session_id: session._id},process.env.JWT_SECRET)
-
-                
                 session.token = token
                 account.session = session
                 await session.save()
                 await account.save()
+                console.log(session)
                 res.status(200).send({session: session})
                 return
             } catch (error) {
@@ -78,6 +83,29 @@ module.exports = (app,db,parse) => {
             // let token = parse.User._generateSessionToken(account.api_key)
         } catch (error) {
             console.log(error)
+            res.status(500).send(error)
+            return
+        }
+    })
+    app.get("/api/account/:id",auth(db) ,async (req,res) => {
+        try {
+            let account = await db.accounts.findOne({_id:req.params.id})
+            
+            if(!account){
+                res.status(404).send({message:"Account not found"})
+                return
+            }
+            res.status(200).send({
+                _id: account._id,
+                files: account.files,
+                api_key: account.api_key,
+                email: account.email,
+                active : account.active,
+                userName: account.userName,
+                createdAt: account.createdAt,
+                updatedAt: account.updatedAt
+            })
+        } catch (error) {
             res.status(500).send(error)
         }
     })

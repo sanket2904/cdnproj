@@ -2,7 +2,10 @@ module.exports.filesSchema = {
     fileName: {type: String, required: true, unique: true},
     fileSize: {type: Number, required: true},
     fileType: {type: String},
+    accountId: {type: String, required: true},
+    fileId: {type: String, required: true, unique: true},
     uploaded_at: {type: Date, default: Date.now},
+    
     file_link: {type: String},
 }
 

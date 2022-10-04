@@ -1,11 +1,11 @@
 const files = require("./filesSchema");
 const sessions = require("./sessions");
 module.exports.accounts = {
-    userName: {type: String, required: true, unique: true},
+    userName: {type: String, unique: true},
     password: {type: String, required: true},
     email: {type: String, required: true, unique: true},
-    firstName: {type: String, required: true},
-    lastName: {type: String, required: true},
+    firstName: {type: String},
+    lastName: {type: String},
     role: {type: String, default: "user"},
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now},
