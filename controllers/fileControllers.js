@@ -1,5 +1,33 @@
 require("../auth")
-let B2 = require("backblaze-b2")
+let AWS = require('aws-sdk')
+
+
+
+async function putFile(params) {
+    
+    var cred = new AWS.Credentials({
+        accessKeyId: params.KEY_ID,secretAccessKey: params.SECRET_KEY
+    })
+    const endpoint = new AWS.Endpoint(params.endpoint);
+    const s3 = new AWS.S3({
+        endpoint: endpoint,
+        credentials: cred,
+    });
+    s3.putObject({
+        Bucket: params.Bucket,
+        Key: params.Key,
+        Body: params.Body,
+    },(err, data) => {
+        if (err) {
+            console.log(err)
+        }
+        else {
+            console.log(data)
+        }
+    })
+}
+
+
 module.exports = (app, db, parse) => {
     app.get("/api/files",auth(db),async (req, res) => {
         let data = req.userData.account_id
@@ -33,22 +61,48 @@ module.exports = (app, db, parse) => {
             account.usage += (file.size / 1000000)
             fileEntry.fileName = fileEntry._id.toString() + file.originalname 
             try {
-                const b2 = new B2({
-                    applicationKeyId: process.env.KEY_ID,
-                    applicationKey: process.env.BACKBLAZE_APPLICATION
-                })
-                await b2.authorize()
-                let bucket = await b2.getBucket({ bucketId: process.env.BUCKET_ID })
-                let uploadUrl = await b2.getUploadUrl({bucketId: process.env.BUCKET_ID})
-                let upload = await b2.uploadFile({
-                   
-                    fileName: fileEntry._id.toString()+file.originalname,
-                    data: file.buffer,
-                    uploadUrl: uploadUrl.data.uploadUrl,
-                    uploadAuthToken: uploadUrl.data.authorizationToken
-                })
-                console.log(upload.data.fileId)
-                fileEntry.fileId = await upload.data.fileId
+
+                var params = [{
+                    Bucket: process.env.CHICAGO_NAME,
+                    Key: fileEntry._id.toString() + file.originalname,
+                    Body: file.buffer,
+                    endpoint: process.env.CHICAGO_ENDPOINT,
+                    KEY_ID: process.env.CHICAGO_ACCESS_KEY,
+                    SECRET_KEY: process.env.CHICAGO_SECRET_KEY
+                },{
+                    Bucket: process.env.LA_NAME,
+                    Key: fileEntry._id.toString() + file.originalname,
+                    Body: file.buffer,
+                    endpoint: process.env.LA_ENDPOINT,
+                    KEY_ID: process.env.LA_ACCESS_KEY,
+                    SECRET_KEY: process.env.LA_SECRET_KEY
+                },{
+                    Bucket: process.env.IRELAND_NAME,
+                    Key: fileEntry._id.toString() + file.originalname,
+                    Body: file.buffer,
+                    endpoint: process.env.IRELAND_ENDPOINT,
+                    KEY_ID: process.env.IRELAND_ACCESS_KEY,
+                    SECRET_KEY: process.env.IRELAND_SECRET_KEY
+                },{
+                    Bucket: process.env.LONDON_NAME,
+                    Key: fileEntry._id.toString() + file.originalname,
+                    Body: file.buffer,
+                    endpoint: process.env.LONDON_ENDPOINT,
+                    KEY_ID: process.env.LONDON_ACCESS_KEY,
+                    SECRET_KEY: process.env.LONDON_SECRET_KEY
+
+                },{
+                    Bucket: process.env.PARIS_NAME,
+                    Key: fileEntry._id.toString() + file.originalname,
+                    Body: file.buffer,
+                    endpoint: process.env.PARIS_ENDPOINT,
+                    KEY_ID: process.env.PARIS_ACCESS_KEY,
+                    SECRET_KEY: process.env.PARIS_SECRET_KEY
+                }]
+                for (var param of params) {
+                    await putFile(param)
+                }
+                fileEntry.fileId = fileEntry._id.toString()
                 fileEntry.file_link = `${process.env.MAIN_DOMAIN}/${fileEntry._id.toString() + file.originalname}`
                 ress.push(fileEntry)
                 await fileEntry.save()
